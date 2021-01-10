@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t shachafotonomo/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run shachafotonomo/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t shachafotonomo/multi-client ./client
+  - docker build -t shachafotonomo/multi-nginx ./nginx
+  - docker build -t shachafotonomo/multi-server ./server
+  - docker build -t shachafotonomo/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push shachafotonomo/multi-client
+  - docker push shachafotonomo/multi-nginx
+  - docker push shachafotonomo/multi-server
+  - docker push shachafotonomo/multi-worker
